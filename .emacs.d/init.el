@@ -74,11 +74,13 @@
   (exec-path-from-shell-initialize))
 
 (use-package random-splash-image)
-(setq random-splash-image-dir (concat (getenv "HOME") "/.emacs.d/splash-images"))
+(setq random-splash-image-dir (expand-file-name "~/.emacs.d/splash-images"))
 (random-splash-image-set)
 
 (use-package elcord
   :defer t)
+
+(use-package google-this :defer t)
 
 (use-package ns-auto-titlebar)
 (when (eq system-type 'darwin) (ns-auto-titlebar-mode))
@@ -87,6 +89,9 @@
 (setq byte-compile-warnings '(cl-functions))
 
 (use-package indent-guide :defer t)
+
+;; To generate automatic tables of content in MarkDown docs
+(use-package markdown-toc)
 
 ;; NOTE: If you want to move everything out of the ~/.emacs.d folder
 ;; reliably, set `user-emacs-directory` before loading no-littering!
@@ -142,9 +147,6 @@
 ;; Enable Slime navigation for Elisp filed
 (dolist (hook '(emacs-lisp-mode-hook ielm-mode-hook))
   (add-hook hook 'turn-on-elisp-slime-nav-mode))
-
-;; TODO: find out why the heck this is broken
-;; (slime-setup '(slime-fancy slime-quicklisp slime-asdf))
 
 ;; Allow to easily paste images into Org
 (use-package org-download :defer t)
@@ -661,6 +663,14 @@
   :ensure t
   :hook (clojure-mode . lsp-deferred))
 
+(use-package slime
+  :ensure t)
+
+(load (expand-file-name "~/.roswell/helper.el"))
+(setq inferior-lisp-program "ros -Q run")
+
+(slime-setup '(slime-fancy slime-company slime-quicklisp slime-asdf))
+
 (use-package pyvenv
   :after python-mode
   :config
@@ -676,16 +686,18 @@
                   sh-indentation 2)))
 
 (use-package company
+  :commands company-mode
   :ensure t
   :after lsp-mode
-  :hook (lsp-mode . company-mode)
+  :hook ((lsp-mode common-lisp-mode emacs-lisp-mode slime-repl-mode) . company-mode)
   :bind (:map company-active-map
 			  ("<tab>" . company-complete-selection))
          (:map lsp-mode-map
 			  ("<tab>" . company-indent-or-complete-common))
   :custom
   (company-minimum-prefix-length 1)
-  (company-idle-delay 0.1))
+  (company-idle-delay 0.1)
+  (company-global-modes '(prog-mode org-mode lisp-mode elisp-mode slime-repl-mode sly-mrepl-mode)))
 
 (use-package company-box
   :hook (company-mode . company-box-mode))
@@ -697,6 +709,12 @@
 (use-package company-restclient
   :config
   (add-to-list 'company-backends 'company-restclient))
+
+
+(define-key company-active-map (kbd "\C-n") 'company-select-next)
+(define-key company-active-map (kbd "\C-p") 'company-select-previous)
+(define-key company-active-map (kbd "\C-d") 'company-show-doc-buffer)
+(define-key company-active-map (kbd "M-.") 'company-show-location)
 
 (use-package projectile
   :diminish projectile-mode
@@ -834,6 +852,7 @@
    '("6c386d159853b0ee6695b45e64f598ed45bd67c47f671f69100817d7db64724d" default))
  '(exwm-floating-border-color "#191b20")
  '(fci-rule-color "#5B6268")
+ '(helm-minibuffer-history-key "M-p")
  '(highlight-tail-colors
    ((("#333a38" "#99bb66" "green")
 	 . 0)
@@ -844,7 +863,7 @@
  '(jdee-db-spec-breakpoint-face-colors (cons "#1B2229" "#3f444a"))
  '(objed-cursor-color "#ff6c6b")
  '(package-selected-packages
-   '(restart-emacs elcord-mode yaml-mode company-restclient restclient exec-path-from-shell ghub+ ag centaur-tabs cider clojure-snippets clojure-mode rubocop rspec-mode indent-guide slime erlang smartparens exunit emojify org-caldav anki-mode anki-connect atom-one-dark-theme alchemist lsp-origami origami elixir-yasnippets dotenv-mode elisp-lint elisp-slime-nav noaa paredit ns-auto-titlebar org-chef org-download vagrant dockerfile-mode enh-ruby-mode osx-lib docker-compose-mode org-vcard ox-pandoc yasnippet-snippets elixir-mode markdown-preview-mode rfc-mode xkcd google-this yasnippet pdf-tools elcord hnreader google-translate copy-as-format nginx-mode cmake-mode minesweeper lsp-ui which-key vterm visual-fill-column use-package typescript-mode rainbow-delimiters pyvenv python-mode org-bullets no-littering lsp-ivy ivy-rich ivy-prescient helpful general forge evil-nerd-commenter evil-collection eterm-256color eshell-git-prompt doom-themes doom-modeline dired-single dired-open dired-hide-dotfiles dap-mode counsel-projectile company-box command-log-mode auto-package-update all-the-icons-dired))
+   '(slime-company yasnippet-classic-snippets markdown-toc restart-emacs elcord-mode yaml-mode company-restclient restclient exec-path-from-shell ghub+ ag centaur-tabs cider clojure-snippets clojure-mode rubocop rspec-mode indent-guide slime erlang smartparens exunit emojify org-caldav anki-mode anki-connect atom-one-dark-theme alchemist lsp-origami origami elixir-yasnippets dotenv-mode elisp-lint elisp-slime-nav noaa paredit ns-auto-titlebar org-chef org-download vagrant dockerfile-mode enh-ruby-mode osx-lib docker-compose-mode org-vcard ox-pandoc yasnippet-snippets elixir-mode markdown-preview-mode rfc-mode xkcd google-this yasnippet pdf-tools elcord hnreader google-translate copy-as-format nginx-mode cmake-mode minesweeper lsp-ui which-key vterm visual-fill-column use-package typescript-mode rainbow-delimiters pyvenv python-mode org-bullets no-littering lsp-ivy ivy-rich ivy-prescient helpful general forge evil-nerd-commenter evil-collection eterm-256color eshell-git-prompt doom-themes doom-modeline dired-single dired-open dired-hide-dotfiles dap-mode counsel-projectile company-box command-log-mode auto-package-update all-the-icons-dired))
  '(pdf-view-midnight-colors (cons "#bbc2cf" "#282c34"))
  '(rustic-ansi-faces
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
