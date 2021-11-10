@@ -1,3 +1,4 @@
+;;; init.el -*- lexical-binding: t; -*-
 ;; Author: Daniils Petrovs
 
 ;; You will most likely need to adjust this font size for your system!
@@ -10,27 +11,32 @@
 (add-to-list 'default-frame-alist '(alpha 100 100))
 
 ;; The default is 800 kilobytes.  Measured in bytes.
-(setq gc-cons-threshold (* 50 2000 2000))
+;; (setq gc-cons-threshold (* 50 2000 2000))
+
+(setq native-comp-deferred-compilation nil)
+
+;; Adjust garbage collection thresholds during startup, and thereafter
+
+(let ((normal-gc-cons-threshold (* 20 1024 1024))
+      (init-gc-cons-threshold (* 128 1024 1024)))
+  (setq gc-cons-threshold init-gc-cons-threshold)
+  (add-hook 'emacs-startup-hook
+            (lambda () (setq gc-cons-threshold normal-gc-cons-threshold))))
+
+(defconst *is-work-laptop* (cl-search "sora" (system-name)))
+(defconst *work-email* "daniils@platogo.com")
+(defconst *personal-email* "thedanpetrov@gmail.com")
 
 ;; Set my personal details
 (setq user-full-name "Daniils Petrovs"
-      user-mail-address "thedanpetrov@gmail.com"
+      user-mail-address (if *is-work-laptop* *work-email* *personal-email*)
 	  calendar-latitude 48.208
 	  calendar-longitude 16.37
 	  calendar-location-name "Vienna, AU")
 
 (setq initial-major-mode 'org-mode)
 
-;; (setq frame-resize-pixelwise t)
-
-(defun efs/display-startup-time ()
-  (message "Emacs loaded in %s with %d garbage collections."
-           (format "%.2f seconds"
-                   (float-time
-                     (time-subtract after-init-time before-init-time)))
-           gcs-done))
-
-(add-hook 'emacs-startup-hook #'efs/display-startup-time)
+(setq frame-resize-pixelwise t)
 
 (setq-default
  delete-by-moving-to-trash t                      ; Delete files to trash
@@ -70,15 +76,34 @@
 
 (use-package exec-path-from-shell)
 
-(when (memq window-system '(mac ns x))
-  (exec-path-from-shell-initialize))
+(pcase system-type
+  ('gnu/linux "It's Linux!")
+  ('windows-nt "It's Windows!")
+  ('darwin (exec-path-from-shell-initialize)))
 
-(use-package random-splash-image)
-(setq random-splash-image-dir (expand-file-name "~/.emacs.d/splash-images"))
-(random-splash-image-set)
+;; Setup startup dashboard
+(use-package dashboard
+			:ensure t
+			:config
+			(dashboard-setup-startup-hook))
 
-(use-package elcord
-  :defer t)
+(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+
+;; Set the title
+(setq dashboard-banner-logo-title "GNU Emacs")
+;; Set the banner
+(setq dashboard-startup-banner 'logo)
+(setq dashboard-center-content t)
+(setq dashboard-items '((recents  . 5)
+                        (bookmarks . 5)
+                        (projects . 5)
+                        (agenda . 5)
+                        (registers . 5)))
+
+(setq dashboard-set-init-info t)
+
+
+(use-package elcord :defer t)
 
 (use-package google-this :defer t)
 
@@ -93,6 +118,21 @@
 ;; To generate automatic tables of content in MarkDown docs
 (use-package markdown-toc)
 
+;; Diagrams
+(use-package mermaid-mode
+  :mode "\\.mermaid\\'")
+
+(use-package plantuml-mode)
+
+(use-package dash-at-point)
+
+(with-eval-after-load 'flycheck
+  (use-package flycheck-plantuml)
+  (flycheck-plantuml-setup))
+
+;; Highlight TODO, FIXME blocks in code etc.
+(use-package hl-todo)
+
 ;; NOTE: If you want to move everything out of the ~/.emacs.d folder
 ;; reliably, set `user-emacs-directory` before loading no-littering!
 ;(setq user-emacs-directory "~/.cache/emacs")
@@ -105,7 +145,10 @@
   :defer t
   :hook (after-init . global-emojify-mode))
 
+;; Fun
 (use-package hnreader :defer t)
+(use-package fireplace :defer t)
+(use-package nyan-mode :defer t)
 
 ;; no-littering doesn't set this by default so we must place
 ;; auto save files in the same path as it uses for sessions
@@ -130,17 +173,21 @@
 (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
-
 ;; Disable line numbers for some modes
 (dolist (mode '(org-mode-hook
+				markdown-mode-hook
 				artist-mode-hook
                 term-mode-hook
                 shell-mode-hook
 				Info-mode-hook
                 treemacs-mode-hook
 				eww-mode-hook
+				fireplace-mode-hook
 				vterm-mode-hook
-                eshell-mode-hook))
+                eshell-mode-hook
+				dashboard-mode-hook
+				boxy-mode-hook
+				rfc-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 (use-package elisp-slime-nav)
@@ -148,8 +195,14 @@
 (dolist (hook '(emacs-lisp-mode-hook ielm-mode-hook))
   (add-hook hook 'turn-on-elisp-slime-nav-mode))
 
+;; Org extensions
+
 ;; Allow to easily paste images into Org
 (use-package org-download :defer t)
+;; Make presentations in Org
+(use-package org-tree-slide
+  :custom
+  (org-image-actual-width nil))
 
 ;; Explicitly enable all-the-icons for treemacs
 (use-package treemacs-all-the-icons)
@@ -163,17 +216,28 @@
 (add-hook 'dired-mode-hook 'org-download-enable)
 (setq-default org-download-image-dir "~/org/img")
 (setq-default org-image-actual-width 800)
+(setq-default org-startup-with-inline-images t)
 ;; Adds all-the-icons support to dired
 (add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
 
+(defun set-font-faces ()
+  (message "Setting faces")
+  (set-face-attribute 'default nil :font "Menlo" :height efs/default-font-size)
 
-(set-face-attribute 'default nil :font "Menlo" :height efs/default-font-size)
+  ;; Set the fixed pitch face
+  (set-face-attribute 'fixed-pitch nil :font "Menlo" :height efs/default-font-size)
 
-;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Menlo" :height efs/default-font-size)
+  ;; Set the variable pitch face
+  (set-face-attribute 'variable-pitch nil :font "Menlo" :height efs/default-variable-font-size :weight 'regular))
 
-;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Menlo" :height efs/default-variable-font-size :weight 'regular)
+(if (daemonp)
+	(add-hook 'after-make-frame-functions
+			  (lambda (frame)
+				(with-selected-frame frame
+				  (set-font-faces))))
+  (set-font-faces))
+
+(setq doom-modeline-icon t)
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -255,7 +319,7 @@
   :diminish which-key-mode
   :config
   (which-key-mode)
-  (setq which-key-idle-delay 0.5))
+  (setq which-key-idle-delay 0.3))
 
 (use-package ivy
   :diminish
@@ -309,6 +373,16 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
+(use-package gif-screencast)
+
+(with-eval-after-load 'gif-screencast
+  (setq gif-screencast-convert-program "convert")
+  (setq gif-screencast-args '("-x")) ;; To shut up the shutter sound of `screencapture' (see `gif-screencast-command').
+  (setq gif-screencast-cropping-program "mogrify") ;; Optional: Used to crop the capture to the Emacs frame.
+  (setq gif-screencast-capture-format "ppm")) ;; Optional: Required to crop captured images.
+
+(use-package elisp-lint)
+
 (use-package hydra
   :defer t)
 
@@ -325,10 +399,12 @@
 
 ;; Enable smartparens and fill column for other programming languages
 (dolist (mode '(ruby-mode-hook
+				python-mode
 				elixir-mode-hook
 				erlang-mode-hook))
   (add-hook mode (lambda ()
 				   (smartparens-mode)
+				   (hl-todo-mode)
 				   (display-fill-column-indicator-mode))))
 
 (setq display-fill-column-indicator-column 80)
@@ -402,15 +478,11 @@
   :hook (org-mode . efs/org-mode-setup)
   :config
   (setq org-ellipsis " ▾")
+  (setq org-agenda-files '("~/org/tasks.org"))
 
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
-
-  (setq org-agenda-files
-        '("~/.emacs.d/OrgFiles/Tasks.org"
-          "~/.emacs.d/OrgFiles/Habits.org"
-          "~/.emacs.d/OrgFiles/Birthdays.org"))
 
   (require 'org-habit)
   (add-to-list 'org-modules 'org-habit)
@@ -532,6 +604,8 @@
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
+(use-package org-real)
+
 (defun efs/org-mode-visual-fill ()
   (setq visual-fill-column-width 100
         visual-fill-column-center-text t)
@@ -539,6 +613,23 @@
 
 (use-package visual-fill-column
   :hook (org-mode . efs/org-mode-visual-fill))
+
+;; Make Markdown mode less ugly
+(defun markdown-mode-visual-fill ()
+  (setq visual-fill-column-width 80
+		visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(defun rfc-mode-visual-prettify ()
+  (setq visual-fill-column-width 80
+		visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package markdown-mode
+  :hook (markdown-mode . markdown-mode-visual-fill))
+
+(use-package rfc-mode
+  :hook (rfc-mode . rfc-mode-visual-prettify))
 
 (with-eval-after-load 'org
   (org-babel-do-load-languages
@@ -571,7 +662,8 @@
 (defun efs/lsp-mode-setup ()
   (ruby-mode . lsp)
   (clojure-mode . lsp)
-  (elixir-mode . lsp))
+  (elixir-mode . lsp)
+  (erlang-mode . lsp))
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
@@ -591,7 +683,7 @@
   :ensure t
   :hook (lsp-mode . lsp-ui-mode))
 
-(add-hook 'lsp-ui-doc-frame-mode-hook #'(lambda()(display-line-numbers-mode -1)))
+(add-hook 'lsp-ui-doc-frame-mode-hook #'(lambda () (display-line-numbers-mode -1)))
 
 (use-package lsp-treemacs
   :after lsp)
@@ -635,8 +727,10 @@
   (setq typescript-indent-level 2))
 
 (use-package erlang
-  :mode "\\.erl\\'"
   :hook (erlang-mode . lsp-deferred))
+
+(use-package company-erlang)
+(add-hook 'erlang-mode-hook #'company-erlang-init)
 
 (use-package elixir-mode
   :hook (elixir-mode . lsp-deferred))
@@ -695,8 +789,8 @@
          (:map lsp-mode-map
 			  ("<tab>" . company-indent-or-complete-common))
   :custom
-  (company-minimum-prefix-length 1)
-  (company-idle-delay 0.1)
+  (company-minimum-prefix-length 2)
+  (company-idle-delay 0.2)
   (company-global-modes '(prog-mode org-mode lisp-mode elisp-mode slime-repl-mode sly-mrepl-mode)))
 
 (use-package company-box
@@ -748,11 +842,25 @@
 
 (setq auth-sources '("~/.authinfo"))
 
+(use-package kubernetes
+  :ensure t
+  :commands (kubernetes-overview)
+  :config
+  (setq kubernetes-poll-frequency 3600
+        kubernetes-redraw-frequency 3600))
+
+;; If you want to pull in the Evil compatibility package.
+(use-package kubernetes-evil
+  :ensure t
+  :after kubernetes)
+
 (use-package evil-nerd-commenter
   :bind ("M-/" . evilnc-comment-or-uncomment-lines))
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
+
+(add-hook 'ielm-mode-hook 'rainbow-delimiters-mode)
 
 (use-package term
   :commands term
@@ -839,8 +947,6 @@
   (evil-collection-define-key 'normal 'dired-mode-map
     "H" 'dired-hide-dotfiles-mode))
 
-;; Make gc pauses faster by decreasing the threshold.
-(setq gc-cons-threshold (* 2 1000 1000))
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -849,7 +955,7 @@
  '(ansi-color-names-vector
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
  '(custom-safe-themes
-   '("6c386d159853b0ee6695b45e64f598ed45bd67c47f671f69100817d7db64724d" default))
+   '("957991c9bed289a8ec0ceb5c03aaec8143252b94c60d089f274c898c50e5b3e0" "2f8958c543f874a7153f472d0d59290100a25b213e1e64d02ba2228205e6e021" "d505cd8bdf3290085eb6657f13b8b0cec5d7cacc17a209f04f5f2d898a60ffa7" "23d35e9fb9f4b0c4d8db5c26570fa114f4e3a5b243a60ad74b6816af2cb6d4ce" "64513198b3c918181d4feff7b60393b6ce5079ad359617d130381686861aefd1" "0dadc28c28366708a6a1ad79528b18b84040eed7f0b0fc11b69a57449beb1da3" "c4fb378ad86c9ff65a52232315cbefb217bbce7ebbcdeb62274c33fc151a2532" "f73c8576229519ab582b79831fee3af6ed07a7a25a7b26ec9a1274680d56abc8" "c5925969ce723198ac1e9d73064205165d1d245acf8c1fb383b6b3cb48e46d54" "28ed7ce69c2b64a4157e4d3fa4b728b43fad72d305068494679a6a3babd4a443" "d22c7dec68a6ac1136d032914e87790a65d5ac3cba9ca85631668b62598862dd" "5b3934ef138e62fbb8cc80193091009fadc57b6dffeaa27d1a1ea998b3f54a2c" "68216bbd931fc9dad4205753169eda26bf1f9bea243a04176901ec7b216c2dce" "67911456c3800ea8a3a2e55dadec87131f92fe976da060644b58070bf9e7a318" "5af27f2ae0c831ede2a3255a94915940d7d634ef1ffecd6463b109f626495067" "39317ff98bb5547bde3311e3feee44b794cb9f5b90eab442b899826d6d12bf20" "6ea8a15f98a45fe8126d07462fa9b6424a33bbec1346e7abd6b99ef0c184db22" "ea03068e5f84d0b9be4d2deff4d0b2d3d14b06fac74f2bcd281f1e56153b0505" "836e95983d7bc4fda4c97eb92d7858d602a7955e101755ef2921bb1c5fb7b9b9" "52194a4821296b43ad812f48766f5ec52fbae6f240fd96554d41393dfa1bd532" "78a3138174232af2b1aeebc08b2c0b4c0fbf1708acb765f4a8dff9f1c7db38d8" "365fc50368ca6aee28dedf7228b720b8523410d4da39573f4e77a6990af21902" "a1782191ab7208be684f5e66678e1f2ce8c0ddfba8b7fa3710fbedba1412c7f0" "0fb50afe1219cd37f4ff85f8aff36bd48e486bd6f8c16a385b0bc88f43a4d7d5" "bd10a670e8e6b116d2b537fdb18ce873756a051e6932e64cd09a132fc6ebdbcd" "7fb0b95683b485d064f74b1bdc73ceaf721cefa36fb9f1a79d74ec35fd7f6205" "09060e3091462fffe894a54dfc2d53fe4a195343fde68cab1a49ae2dec75a951" "b8bf1fcb8982773a38fb029dcb386bc4d7848eb9052b5b6e9cfa7c8c6ca397aa" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "97a9685f37525c11e37d8941908ce3408fc7efc8ff653c73e6d246daeb6ab3a2" "6c386d159853b0ee6695b45e64f598ed45bd67c47f671f69100817d7db64724d" default))
  '(exwm-floating-border-color "#191b20")
  '(fci-rule-color "#5B6268")
  '(helm-minibuffer-history-key "M-p")
@@ -862,8 +968,9 @@
  '(jdee-db-requested-breakpoint-face-colors (cons "#1B2229" "#98be65"))
  '(jdee-db-spec-breakpoint-face-colors (cons "#1B2229" "#3f444a"))
  '(objed-cursor-color "#ff6c6b")
+ '(org-agenda-files nil)
  '(package-selected-packages
-   '(slime-company yasnippet-classic-snippets markdown-toc restart-emacs elcord-mode yaml-mode company-restclient restclient exec-path-from-shell ghub+ ag centaur-tabs cider clojure-snippets clojure-mode rubocop rspec-mode indent-guide slime erlang smartparens exunit emojify org-caldav anki-mode anki-connect atom-one-dark-theme alchemist lsp-origami origami elixir-yasnippets dotenv-mode elisp-lint elisp-slime-nav noaa paredit ns-auto-titlebar org-chef org-download vagrant dockerfile-mode enh-ruby-mode osx-lib docker-compose-mode org-vcard ox-pandoc yasnippet-snippets elixir-mode markdown-preview-mode rfc-mode xkcd google-this yasnippet pdf-tools elcord hnreader google-translate copy-as-format nginx-mode cmake-mode minesweeper lsp-ui which-key vterm visual-fill-column use-package typescript-mode rainbow-delimiters pyvenv python-mode org-bullets no-littering lsp-ivy ivy-rich ivy-prescient helpful general forge evil-nerd-commenter evil-collection eterm-256color eshell-git-prompt doom-themes doom-modeline dired-single dired-open dired-hide-dotfiles dap-mode counsel-projectile company-box command-log-mode auto-package-update all-the-icons-dired))
+   '(dilbert enlive kubernetes-evil kubernetes gif-screencast dash-at-point package-build rainbow-mode ancient-one-dark-theme org-tree-slide company-erlang nyan-mode fireplace plantuml-mode mermaid-mode dashboard ansi shut-up epl git commander cask hl-todo slime-company yasnippet-classic-snippets markdown-toc restart-emacs elcord-mode yaml-mode company-restclient restclient exec-path-from-shell ghub+ ag centaur-tabs cider clojure-snippets clojure-mode rubocop rspec-mode indent-guide slime erlang smartparens exunit emojify org-caldav anki-mode anki-connect atom-one-dark-theme alchemist lsp-origami origami elixir-yasnippets dotenv-mode elisp-lint elisp-slime-nav noaa paredit ns-auto-titlebar org-chef org-download vagrant dockerfile-mode enh-ruby-mode osx-lib docker-compose-mode org-vcard ox-pandoc yasnippet-snippets elixir-mode markdown-preview-mode rfc-mode xkcd google-this yasnippet pdf-tools elcord hnreader google-translate copy-as-format nginx-mode cmake-mode minesweeper lsp-ui which-key vterm visual-fill-column use-package typescript-mode rainbow-delimiters pyvenv python-mode org-bullets no-littering lsp-ivy ivy-rich ivy-prescient helpful general forge evil-nerd-commenter evil-collection eterm-256color eshell-git-prompt doom-themes doom-modeline dired-single dired-open dired-hide-dotfiles dap-mode counsel-projectile company-box command-log-mode auto-package-update all-the-icons-dired))
  '(pdf-view-midnight-colors (cons "#bbc2cf" "#282c34"))
  '(rustic-ansi-faces
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
@@ -889,7 +996,8 @@
 	(cons 320 "#6f4e52")
 	(cons 340 "#5B6268")
 	(cons 360 "#5B6268")))
- '(vc-annotate-very-old-color nil))
+ '(vc-annotate-very-old-color nil)
+ '(warning-suppress-types '((comp) (comp))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
