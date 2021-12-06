@@ -34,8 +34,6 @@
 	  calendar-longitude 16.37
 	  calendar-location-name "Vienna, AU")
 
-(setq initial-major-mode 'org-mode)
-
 (setq frame-resize-pixelwise t)
 
 (setq-default
@@ -64,6 +62,9 @@
 
 (require 'use-package)
 (setq use-package-always-ensure t)
+
+;; Allow to install packages manually from this dir
+(add-to-list 'load-path "~/.emacs.d/lisp/")
 
 (use-package auto-package-update
   :custom
@@ -149,6 +150,8 @@
 (use-package hnreader :defer t)
 (use-package fireplace :defer t)
 (use-package nyan-mode :defer t)
+(use-package dilbert :defer t)
+(use-package xkcd :defer t)
 
 ;; no-littering doesn't set this by default so we must place
 ;; auto save files in the same path as it uses for sessions
@@ -187,6 +190,8 @@
                 eshell-mode-hook
 				dashboard-mode-hook
 				boxy-mode-hook
+				which-key-mode-hook
+				dictionary-mode-hook
 				rfc-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
@@ -203,10 +208,6 @@
 (use-package org-tree-slide
   :custom
   (org-image-actual-width nil))
-
-;; Explicitly enable all-the-icons for treemacs
-(use-package treemacs-all-the-icons)
-(treemacs-load-theme "all-the-icons")
 
 ;; Snippets and enable them globally
 (use-package yasnippet)
@@ -236,8 +237,6 @@
 				(with-selected-frame frame
 				  (set-font-faces))))
   (set-font-faces))
-
-(setq doom-modeline-icon t)
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -303,7 +302,7 @@
   :config
   (setq doom-themes-enable-bold t
 		doom-themes-enable-italic t)
-  (load-theme 'doom-nord t)
+  (load-theme 'doom-spacegrey t)
   (doom-themes-visual-bell-config)
   (doom-themes-treemacs-config)
   (doom-themes-org-config))
@@ -312,7 +311,8 @@
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
-  :custom ((doom-modeline-height 14)))
+  :custom ((doom-modeline-height 20)
+		   (doom-modeline-icon t)))
 
 (use-package which-key
   :defer 0
@@ -427,6 +427,7 @@
   (add-hook mode (lambda () (enable-paredit-mode))))
 
 (add-hook 'slime-repl-mode-hook (lambda () (paredit-mode +1)))
+(add-hook 'emacs-lisp-mode-hook (lambda () (display-fill-column-indicator-mode)))
 
 ;; Stop SLIME's REPL from grabbing DEL,
           ;; which is annoying when backspacing over a '('
@@ -490,11 +491,11 @@
 
   (setq org-todo-keywords
     '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
-      (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+      (sequence "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
 
   (setq org-refile-targets
     '(("Archive.org" :maxlevel . 1)
-      ("Tasks.org" :maxlevel . 1)))
+      ("tasks.org" :maxlevel . 1)))
 
   ;; Save Org buffers after refiling!
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
@@ -685,9 +686,6 @@
 
 (add-hook 'lsp-ui-doc-frame-mode-hook #'(lambda () (display-line-numbers-mode -1)))
 
-(use-package lsp-treemacs
-  :after lsp)
-
 (use-package lsp-ivy
   :after lsp)
 
@@ -763,6 +761,8 @@
 (load (expand-file-name "~/.roswell/helper.el"))
 (setq inferior-lisp-program "ros -Q run")
 
+(require 'slime-autoloads)
+
 (slime-setup '(slime-fancy slime-company slime-quicklisp slime-asdf))
 
 (use-package pyvenv
@@ -821,6 +821,7 @@
   ;; Projectile specific settings
   (setq projectile-project-search-path '("~/projects/git" "~/projects/local"))
   (setq projectile-ignored-projects '("~/" "/tmp" "~/.emacs.d/.local/straight/repos/"))
+  (setq projectile-indexing-method 'hybrid)
   (when (file-directory-p "~/GIT")
     (setq projectile-project-search-path '("~/GIT")))
   (setq projectile-switch-project-action #'projectile-dired))
@@ -852,6 +853,9 @@
 ;; If you want to pull in the Evil compatibility package.
 (use-package kubernetes-evil
   :ensure t
+  :after kubernetes)
+
+(use-package kubernetes-helm
   :after kubernetes)
 
 (use-package evil-nerd-commenter
@@ -955,7 +959,7 @@
  '(ansi-color-names-vector
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
  '(custom-safe-themes
-   '("957991c9bed289a8ec0ceb5c03aaec8143252b94c60d089f274c898c50e5b3e0" "2f8958c543f874a7153f472d0d59290100a25b213e1e64d02ba2228205e6e021" "d505cd8bdf3290085eb6657f13b8b0cec5d7cacc17a209f04f5f2d898a60ffa7" "23d35e9fb9f4b0c4d8db5c26570fa114f4e3a5b243a60ad74b6816af2cb6d4ce" "64513198b3c918181d4feff7b60393b6ce5079ad359617d130381686861aefd1" "0dadc28c28366708a6a1ad79528b18b84040eed7f0b0fc11b69a57449beb1da3" "c4fb378ad86c9ff65a52232315cbefb217bbce7ebbcdeb62274c33fc151a2532" "f73c8576229519ab582b79831fee3af6ed07a7a25a7b26ec9a1274680d56abc8" "c5925969ce723198ac1e9d73064205165d1d245acf8c1fb383b6b3cb48e46d54" "28ed7ce69c2b64a4157e4d3fa4b728b43fad72d305068494679a6a3babd4a443" "d22c7dec68a6ac1136d032914e87790a65d5ac3cba9ca85631668b62598862dd" "5b3934ef138e62fbb8cc80193091009fadc57b6dffeaa27d1a1ea998b3f54a2c" "68216bbd931fc9dad4205753169eda26bf1f9bea243a04176901ec7b216c2dce" "67911456c3800ea8a3a2e55dadec87131f92fe976da060644b58070bf9e7a318" "5af27f2ae0c831ede2a3255a94915940d7d634ef1ffecd6463b109f626495067" "39317ff98bb5547bde3311e3feee44b794cb9f5b90eab442b899826d6d12bf20" "6ea8a15f98a45fe8126d07462fa9b6424a33bbec1346e7abd6b99ef0c184db22" "ea03068e5f84d0b9be4d2deff4d0b2d3d14b06fac74f2bcd281f1e56153b0505" "836e95983d7bc4fda4c97eb92d7858d602a7955e101755ef2921bb1c5fb7b9b9" "52194a4821296b43ad812f48766f5ec52fbae6f240fd96554d41393dfa1bd532" "78a3138174232af2b1aeebc08b2c0b4c0fbf1708acb765f4a8dff9f1c7db38d8" "365fc50368ca6aee28dedf7228b720b8523410d4da39573f4e77a6990af21902" "a1782191ab7208be684f5e66678e1f2ce8c0ddfba8b7fa3710fbedba1412c7f0" "0fb50afe1219cd37f4ff85f8aff36bd48e486bd6f8c16a385b0bc88f43a4d7d5" "bd10a670e8e6b116d2b537fdb18ce873756a051e6932e64cd09a132fc6ebdbcd" "7fb0b95683b485d064f74b1bdc73ceaf721cefa36fb9f1a79d74ec35fd7f6205" "09060e3091462fffe894a54dfc2d53fe4a195343fde68cab1a49ae2dec75a951" "b8bf1fcb8982773a38fb029dcb386bc4d7848eb9052b5b6e9cfa7c8c6ca397aa" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "97a9685f37525c11e37d8941908ce3408fc7efc8ff653c73e6d246daeb6ab3a2" "6c386d159853b0ee6695b45e64f598ed45bd67c47f671f69100817d7db64724d" default))
+   '("a0be7a38e2de974d1598cf247f607d5c1841dbcef1ccd97cded8bea95a7c7639" "8146edab0de2007a99a2361041015331af706e7907de9d6a330a3493a541e5a6" "957991c9bed289a8ec0ceb5c03aaec8143252b94c60d089f274c898c50e5b3e0" "2f8958c543f874a7153f472d0d59290100a25b213e1e64d02ba2228205e6e021" "d505cd8bdf3290085eb6657f13b8b0cec5d7cacc17a209f04f5f2d898a60ffa7" "23d35e9fb9f4b0c4d8db5c26570fa114f4e3a5b243a60ad74b6816af2cb6d4ce" "64513198b3c918181d4feff7b60393b6ce5079ad359617d130381686861aefd1" "0dadc28c28366708a6a1ad79528b18b84040eed7f0b0fc11b69a57449beb1da3" "c4fb378ad86c9ff65a52232315cbefb217bbce7ebbcdeb62274c33fc151a2532" "f73c8576229519ab582b79831fee3af6ed07a7a25a7b26ec9a1274680d56abc8" "c5925969ce723198ac1e9d73064205165d1d245acf8c1fb383b6b3cb48e46d54" "28ed7ce69c2b64a4157e4d3fa4b728b43fad72d305068494679a6a3babd4a443" "d22c7dec68a6ac1136d032914e87790a65d5ac3cba9ca85631668b62598862dd" "5b3934ef138e62fbb8cc80193091009fadc57b6dffeaa27d1a1ea998b3f54a2c" "68216bbd931fc9dad4205753169eda26bf1f9bea243a04176901ec7b216c2dce" "67911456c3800ea8a3a2e55dadec87131f92fe976da060644b58070bf9e7a318" "5af27f2ae0c831ede2a3255a94915940d7d634ef1ffecd6463b109f626495067" "39317ff98bb5547bde3311e3feee44b794cb9f5b90eab442b899826d6d12bf20" "6ea8a15f98a45fe8126d07462fa9b6424a33bbec1346e7abd6b99ef0c184db22" "ea03068e5f84d0b9be4d2deff4d0b2d3d14b06fac74f2bcd281f1e56153b0505" "836e95983d7bc4fda4c97eb92d7858d602a7955e101755ef2921bb1c5fb7b9b9" "52194a4821296b43ad812f48766f5ec52fbae6f240fd96554d41393dfa1bd532" "78a3138174232af2b1aeebc08b2c0b4c0fbf1708acb765f4a8dff9f1c7db38d8" "365fc50368ca6aee28dedf7228b720b8523410d4da39573f4e77a6990af21902" "a1782191ab7208be684f5e66678e1f2ce8c0ddfba8b7fa3710fbedba1412c7f0" "0fb50afe1219cd37f4ff85f8aff36bd48e486bd6f8c16a385b0bc88f43a4d7d5" "bd10a670e8e6b116d2b537fdb18ce873756a051e6932e64cd09a132fc6ebdbcd" "7fb0b95683b485d064f74b1bdc73ceaf721cefa36fb9f1a79d74ec35fd7f6205" "09060e3091462fffe894a54dfc2d53fe4a195343fde68cab1a49ae2dec75a951" "b8bf1fcb8982773a38fb029dcb386bc4d7848eb9052b5b6e9cfa7c8c6ca397aa" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "97a9685f37525c11e37d8941908ce3408fc7efc8ff653c73e6d246daeb6ab3a2" "6c386d159853b0ee6695b45e64f598ed45bd67c47f671f69100817d7db64724d" default))
  '(exwm-floating-border-color "#191b20")
  '(fci-rule-color "#5B6268")
  '(helm-minibuffer-history-key "M-p")
@@ -970,7 +974,7 @@
  '(objed-cursor-color "#ff6c6b")
  '(org-agenda-files nil)
  '(package-selected-packages
-   '(dilbert enlive kubernetes-evil kubernetes gif-screencast dash-at-point package-build rainbow-mode ancient-one-dark-theme org-tree-slide company-erlang nyan-mode fireplace plantuml-mode mermaid-mode dashboard ansi shut-up epl git commander cask hl-todo slime-company yasnippet-classic-snippets markdown-toc restart-emacs elcord-mode yaml-mode company-restclient restclient exec-path-from-shell ghub+ ag centaur-tabs cider clojure-snippets clojure-mode rubocop rspec-mode indent-guide slime erlang smartparens exunit emojify org-caldav anki-mode anki-connect atom-one-dark-theme alchemist lsp-origami origami elixir-yasnippets dotenv-mode elisp-lint elisp-slime-nav noaa paredit ns-auto-titlebar org-chef org-download vagrant dockerfile-mode enh-ruby-mode osx-lib docker-compose-mode org-vcard ox-pandoc yasnippet-snippets elixir-mode markdown-preview-mode rfc-mode xkcd google-this yasnippet pdf-tools elcord hnreader google-translate copy-as-format nginx-mode cmake-mode minesweeper lsp-ui which-key vterm visual-fill-column use-package typescript-mode rainbow-delimiters pyvenv python-mode org-bullets no-littering lsp-ivy ivy-rich ivy-prescient helpful general forge evil-nerd-commenter evil-collection eterm-256color eshell-git-prompt doom-themes doom-modeline dired-single dired-open dired-hide-dotfiles dap-mode counsel-projectile company-box command-log-mode auto-package-update all-the-icons-dired))
+   '(package-build shortcuts kubernetes-helm screenshot org-make-toc js-mode javascript-mode dilbert enlive kubernetes-evil kubernetes gif-screencast dash-at-point rainbow-mode ancient-one-dark-theme org-tree-slide company-erlang nyan-mode fireplace plantuml-mode mermaid-mode dashboard ansi shut-up epl git commander cask hl-todo slime-company yasnippet-classic-snippets markdown-toc restart-emacs elcord-mode yaml-mode company-restclient restclient exec-path-from-shell ghub+ ag centaur-tabs cider clojure-snippets clojure-mode rubocop rspec-mode indent-guide slime erlang smartparens exunit emojify org-caldav anki-mode anki-connect atom-one-dark-theme alchemist lsp-origami origami elixir-yasnippets dotenv-mode elisp-lint elisp-slime-nav noaa paredit ns-auto-titlebar org-chef org-download vagrant dockerfile-mode enh-ruby-mode docker-compose-mode org-vcard ox-pandoc yasnippet-snippets elixir-mode markdown-preview-mode rfc-mode xkcd google-this yasnippet pdf-tools elcord hnreader google-translate copy-as-format nginx-mode cmake-mode minesweeper lsp-ui which-key vterm visual-fill-column use-package typescript-mode rainbow-delimiters pyvenv python-mode org-bullets no-littering lsp-ivy ivy-rich ivy-prescient helpful general forge evil-nerd-commenter evil-collection eterm-256color eshell-git-prompt doom-themes doom-modeline dired-single dired-open dired-hide-dotfiles dap-mode counsel-projectile company-box command-log-mode auto-package-update all-the-icons-dired))
  '(pdf-view-midnight-colors (cons "#bbc2cf" "#282c34"))
  '(rustic-ansi-faces
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
