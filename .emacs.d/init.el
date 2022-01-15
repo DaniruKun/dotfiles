@@ -78,7 +78,7 @@
 (use-package exec-path-from-shell)
 
 (pcase system-type
-  ('gnu/linux "It's Linux!")
+  ('gnu/linux (exec-path-from-shell-initialize))
   ('windows-nt "It's Windows!")
   ('darwin (exec-path-from-shell-initialize)))
 
@@ -103,6 +103,7 @@
 
 (setq dashboard-set-init-info t)
 
+(setq confirm-kill-emacs #'yes-or-no-p)
 
 (use-package elcord :defer t)
 
@@ -141,10 +142,7 @@
 
 (use-package restart-emacs)
 
-;; Display emojis globally
-(use-package emojify
-  :defer t
-  :hook (after-init . global-emojify-mode))
+(set-fontset-font t '(#x1f000 . #x1faff) (font-spec :family "Apple Color Emoji"))
 
 ;; Fun
 (use-package hnreader :defer t)
@@ -158,8 +156,6 @@
 (setq auto-save-file-name-transforms
       `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 
-;; (setq inhibit-startup-message t)
-
 (scroll-bar-mode -1)        ; Disable visible scrollbar
 (tool-bar-mode -1)          ; Disable the toolbar
 (tooltip-mode -1)           ; Disable tooltips
@@ -168,7 +164,7 @@
 (menu-bar-mode -1)            ; Disable the menu bar
 
 (column-number-mode)
-(global-display-line-numbers-mode t)
+;; (global-display-line-numbers-mode t)
 
 ;; Set frame transparency
 (set-frame-parameter (selected-frame) 'alpha efs/frame-transparency)
@@ -176,24 +172,26 @@
 (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
-;; Disable line numbers for some modes
-(dolist (mode '(org-mode-hook
-				markdown-mode-hook
-				artist-mode-hook
-                term-mode-hook
-                shell-mode-hook
-				Info-mode-hook
-                treemacs-mode-hook
-				eww-mode-hook
-				fireplace-mode-hook
-				vterm-mode-hook
-                eshell-mode-hook
-				dashboard-mode-hook
-				boxy-mode-hook
-				which-key-mode-hook
-				dictionary-mode-hook
-				rfc-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+;; Display line numbers and fill col for some modes
+
+(setq my-programming-modes '(elixir-mode-hook
+							 erlang-mode-hook
+							 emacs-lisp-mode-hook
+							 common-lisp-mode-hook
+							 lisp-mode-hook
+							 ruby-mode-hook
+							 yaml-mode-hook
+							 html-mode-hook
+							 shell-mode-hook
+							 sql-mode-hook
+							 typescript-mode-hook
+							 javascript-mode-hook
+							 makefile-bsdmake-mode
+							 github-review-mode-hook))
+
+(dolist (mode my-programming-modes)
+  (add-hook mode (lambda () (display-line-numbers-mode t)
+				   (display-fill-column-indicator-mode t))))
 
 (use-package elisp-slime-nav)
 ;; Enable Slime navigation for Elisp filed
@@ -404,8 +402,7 @@
 				erlang-mode-hook))
   (add-hook mode (lambda ()
 				   (smartparens-mode)
-				   (hl-todo-mode)
-				   (display-fill-column-indicator-mode))))
+				   (hl-todo-mode))))
 
 (setq display-fill-column-indicator-column 80)
 
@@ -427,7 +424,6 @@
   (add-hook mode (lambda () (enable-paredit-mode))))
 
 (add-hook 'slime-repl-mode-hook (lambda () (paredit-mode +1)))
-(add-hook 'emacs-lisp-mode-hook (lambda () (display-fill-column-indicator-mode)))
 
 ;; Stop SLIME's REPL from grabbing DEL,
           ;; which is annoying when backspacing over a '('
@@ -480,7 +476,6 @@
   :config
   (setq org-ellipsis " ▾")
   (setq org-agenda-files '("~/org/tasks.org"))
-
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
@@ -491,7 +486,7 @@
 
   (setq org-todo-keywords
     '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
-      (sequence "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+      (sequence "STARTED(s)" "WAITING(w@/!)" "HOLD(h)" "|" "CANC(k@)" "OBSOLETE(o)")))
 
   (setq org-refile-targets
     '(("Archive.org" :maxlevel . 1)
@@ -541,14 +536,6 @@
       (todo "REVIEW"
             ((org-agenda-overriding-header "In Review")
              (org-agenda-files org-agenda-files)))
-      (todo "PLAN"
-            ((org-agenda-overriding-header "In Planning")
-             (org-agenda-todo-list-sublevels nil)
-             (org-agenda-files org-agenda-files)))
-      (todo "BACKLOG"
-            ((org-agenda-overriding-header "Project Backlog")
-             (org-agenda-todo-list-sublevels nil)
-             (org-agenda-files org-agenda-files)))
       (todo "READY"
             ((org-agenda-overriding-header "Ready for Work")
              (org-agenda-files org-agenda-files)))
@@ -564,7 +551,7 @@
 
   (setq org-capture-templates
     `(("t" "Tasks / Projects")
-      ("tt" "Task" entry (file+olp "~/.emacs.d/OrgFiles/Tasks.org" "Inbox")
+      ("tt" "Task" entry (file+olp "~/org/tasks.org" "Inbox")
            "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)
 
       ("j" "Journal Entries")
@@ -610,7 +597,9 @@
 (defun efs/org-mode-visual-fill ()
   (setq visual-fill-column-width 100
         visual-fill-column-center-text t)
-  (visual-fill-column-mode 1))
+  (visual-fill-column-mode 1)
+  (display-line-numbers-mode -1)
+  (display-fill-column-indicator-mode -1))
 
 (use-package visual-fill-column
   :hook (org-mode . efs/org-mode-visual-fill))
@@ -619,7 +608,9 @@
 (defun markdown-mode-visual-fill ()
   (setq visual-fill-column-width 80
 		visual-fill-column-center-text t)
-  (visual-fill-column-mode 1))
+  (visual-fill-column-mode 1)
+  (display-line-numbers-mode -1)
+  (display-fill-column-indicator-mode -1))
 
 (defun rfc-mode-visual-prettify ()
   (setq visual-fill-column-width 80
@@ -648,23 +639,18 @@
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("py" . "src python")))
 
-;; Not super clear how to use org-babel yet, so will disable for now
-
-;; Automatically tangle our Emacs.org config file when we save it
-;; (defun efs/org-babel-tangle-config ()
-;;   (when (string-equal (file-name-directory (buffer-file-name))
-;;                       (expand-file-name user-emacs-directory))
-;;     ;; Dynamic scoping to the rescue
-;;     (let ((org-confirm-babel-evaluate nil))
-;;       (org-babel-tangle))))
-
-;; (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
+(use-package editorconfig
+  :ensure t
+  :config
+  (editorconfig-mode 1))
 
 (defun efs/lsp-mode-setup ()
   (ruby-mode . lsp)
   (clojure-mode . lsp)
   (elixir-mode . lsp)
-  (erlang-mode . lsp))
+  (erlang-mode . lsp)
+  (javascript-mode . lsp)
+  (typescript-mode . lsp))
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
@@ -673,18 +659,17 @@
   :hook (lsp-mode . efs/lsp-mode-setup)
   :init
   (setq lsp-keymap-prefix "C-c l")  ;; Or 'C-l', 's-l'
-  (add-to-list 'exec-path "/usr/local/bin/elixir-ls")
+  (add-to-list 'exec-path "/usr/local/opt/elixir-ls")
   :config
   (setq lsp-headerline-enable nil
 		lsp-headerline-breadcrumb-enable nil ;; disable headerline breadcrumbs
-		lsp-lens-enable t) ;; enable code lens
+		lsp-lens-enable t
+		lsp-solargraph-use-bundler t)
   (lsp-enable-which-key-integration t))
 
 (use-package lsp-ui
   :ensure t
   :hook (lsp-mode . lsp-ui-mode))
-
-(add-hook 'lsp-ui-doc-frame-mode-hook #'(lambda () (display-line-numbers-mode -1)))
 
 (use-package lsp-ivy
   :after lsp)
@@ -722,7 +707,8 @@
   :mode "\\.ts\\'"
   :hook (typescript-mode . lsp-deferred)
   :config
-  (setq typescript-indent-level 2))
+  (setq typescript-indent-level 2
+		js-indent-level 2))
 
 (use-package erlang
   :hook (erlang-mode . lsp-deferred))
@@ -733,12 +719,17 @@
 (use-package elixir-mode
   :hook (elixir-mode . lsp-deferred))
 
+;; Ruby Development
+
 (use-package ruby-mode
   :hook (ruby-mode . lsp-deferred))
 
 (use-package rspec-mode)
 (eval-after-load 'rspec-mode
  '(rspec-install-snippets))
+
+(use-package yard-mode)
+(add-hook 'ruby-mode-hook 'yard-mode)
 
 (use-package python-mode
   :ensure t
@@ -756,14 +747,14 @@
   :hook (clojure-mode . lsp-deferred))
 
 (use-package slime
-  :ensure t)
+  :ensure t
+  :config
+  (require 'slime-autoloads)
+  (setq slime-contribs '(slime-company slime-quicklisp slime-asdf))
+  (slime-setup '(slime-company slime-quicklisp slime-asdf)))
 
 (load (expand-file-name "~/.roswell/helper.el"))
 (setq inferior-lisp-program "ros -Q run")
-
-(require 'slime-autoloads)
-
-(slime-setup '(slime-fancy slime-company slime-quicklisp slime-asdf))
 
 (use-package pyvenv
   :after python-mode
@@ -822,7 +813,7 @@
   (setq projectile-project-search-path '("~/projects/git" "~/projects/local"))
   (setq projectile-ignored-projects '("~/" "/tmp" "~/.emacs.d/.local/straight/repos/"))
   (setq projectile-indexing-method 'hybrid)
-  (when (file-directory-p "~/GIT")
+  (when (not *is-work-laptop*)
     (setq projectile-project-search-path '("~/GIT")))
   (setq projectile-switch-project-action #'projectile-dired))
 
@@ -840,6 +831,8 @@
 ;; - https://magit.vc/manual/ghub/Getting-Started.html#Getting-Started
 (use-package forge
   :after magit)
+
+(use-package github-review)
 
 (setq auth-sources '("~/.authinfo"))
 
@@ -974,7 +967,7 @@
  '(objed-cursor-color "#ff6c6b")
  '(org-agenda-files nil)
  '(package-selected-packages
-   '(package-build shortcuts kubernetes-helm screenshot org-make-toc js-mode javascript-mode dilbert enlive kubernetes-evil kubernetes gif-screencast dash-at-point rainbow-mode ancient-one-dark-theme org-tree-slide company-erlang nyan-mode fireplace plantuml-mode mermaid-mode dashboard ansi shut-up epl git commander cask hl-todo slime-company yasnippet-classic-snippets markdown-toc restart-emacs elcord-mode yaml-mode company-restclient restclient exec-path-from-shell ghub+ ag centaur-tabs cider clojure-snippets clojure-mode rubocop rspec-mode indent-guide slime erlang smartparens exunit emojify org-caldav anki-mode anki-connect atom-one-dark-theme alchemist lsp-origami origami elixir-yasnippets dotenv-mode elisp-lint elisp-slime-nav noaa paredit ns-auto-titlebar org-chef org-download vagrant dockerfile-mode enh-ruby-mode docker-compose-mode org-vcard ox-pandoc yasnippet-snippets elixir-mode markdown-preview-mode rfc-mode xkcd google-this yasnippet pdf-tools elcord hnreader google-translate copy-as-format nginx-mode cmake-mode minesweeper lsp-ui which-key vterm visual-fill-column use-package typescript-mode rainbow-delimiters pyvenv python-mode org-bullets no-littering lsp-ivy ivy-rich ivy-prescient helpful general forge evil-nerd-commenter evil-collection eterm-256color eshell-git-prompt doom-themes doom-modeline dired-single dired-open dired-hide-dotfiles dap-mode counsel-projectile company-box command-log-mode auto-package-update all-the-icons-dired))
+   '(platogo github-review yard-mode siri-shortcuts unicode-fonts package-build shortcuts kubernetes-helm screenshot org-make-toc js-mode javascript-mode dilbert enlive kubernetes-evil kubernetes gif-screencast dash-at-point rainbow-mode ancient-one-dark-theme org-tree-slide company-erlang nyan-mode fireplace plantuml-mode mermaid-mode dashboard ansi shut-up epl git commander cask hl-todo slime-company yasnippet-classic-snippets markdown-toc restart-emacs elcord-mode yaml-mode company-restclient restclient exec-path-from-shell ghub+ ag centaur-tabs cider clojure-snippets clojure-mode rubocop rspec-mode indent-guide slime erlang smartparens exunit org-caldav anki-mode anki-connect atom-one-dark-theme alchemist lsp-origami origami elixir-yasnippets dotenv-mode elisp-lint elisp-slime-nav noaa paredit ns-auto-titlebar org-chef org-download vagrant dockerfile-mode enh-ruby-mode docker-compose-mode org-vcard ox-pandoc yasnippet-snippets elixir-mode markdown-preview-mode rfc-mode xkcd google-this yasnippet pdf-tools elcord hnreader google-translate copy-as-format nginx-mode cmake-mode minesweeper lsp-ui which-key vterm visual-fill-column use-package typescript-mode rainbow-delimiters pyvenv python-mode org-bullets no-littering lsp-ivy ivy-rich ivy-prescient helpful general forge evil-nerd-commenter evil-collection eterm-256color eshell-git-prompt doom-themes doom-modeline dired-single dired-open dired-hide-dotfiles dap-mode counsel-projectile company-box command-log-mode auto-package-update all-the-icons-dired))
  '(pdf-view-midnight-colors (cons "#bbc2cf" "#282c34"))
  '(rustic-ansi-faces
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
