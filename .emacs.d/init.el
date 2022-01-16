@@ -30,9 +30,9 @@
 ;; Set my personal details
 (setq user-full-name "Daniils Petrovs"
       user-mail-address (if *is-work-laptop* *work-email* *personal-email*)
-	  calendar-latitude 48.208
-	  calendar-longitude 16.37
-	  calendar-location-name "Vienna, AU")
+      calendar-latitude 48.208
+      calendar-longitude 16.37
+      calendar-location-name "Vienna, AU")
 
 (setq frame-resize-pixelwise t)
 
@@ -84,9 +84,9 @@
 
 ;; Setup startup dashboard
 (use-package dashboard
-			:ensure t
-			:config
-			(dashboard-setup-startup-hook))
+            :ensure t
+            :config
+            (dashboard-setup-startup-hook))
 
 (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
 
@@ -175,23 +175,25 @@
 ;; Display line numbers and fill col for some modes
 
 (setq my-programming-modes '(elixir-mode-hook
-							 erlang-mode-hook
-							 emacs-lisp-mode-hook
-							 common-lisp-mode-hook
-							 lisp-mode-hook
-							 ruby-mode-hook
-							 yaml-mode-hook
-							 html-mode-hook
-							 shell-mode-hook
-							 sql-mode-hook
-							 typescript-mode-hook
-							 javascript-mode-hook
-							 makefile-bsdmake-mode
-							 github-review-mode-hook))
+                             erlang-mode-hook
+                             emacs-lisp-mode-hook
+                             common-lisp-mode-hook
+                             lisp-mode-hook
+                             clojure-mode-hook
+                             ruby-mode-hook
+                             yaml-mode-hook
+                             html-mode-hook
+                             shell-mode-hook
+                             shell-script-mode-hook
+                             sql-mode-hook
+                             typescript-mode-hook
+                             javascript-mode-hook
+                             makefile-bsdmake-mode
+                             github-review-mode-hook))
 
 (dolist (mode my-programming-modes)
   (add-hook mode (lambda () (display-line-numbers-mode t)
-				   (display-fill-column-indicator-mode t))))
+                   (display-fill-column-indicator-mode t))))
 
 (use-package elisp-slime-nav)
 ;; Enable Slime navigation for Elisp filed
@@ -230,10 +232,10 @@
   (set-face-attribute 'variable-pitch nil :font "Menlo" :height efs/default-variable-font-size :weight 'regular))
 
 (if (daemonp)
-	(add-hook 'after-make-frame-functions
-			  (lambda (frame)
-				(with-selected-frame frame
-				  (set-font-faces))))
+    (add-hook 'after-make-frame-functions
+              (lambda (frame)
+                (with-selected-frame frame
+                  (set-font-faces))))
   (set-font-faces))
 
 ;; Make ESC quit prompts
@@ -299,7 +301,7 @@
   :ensure t
   :config
   (setq doom-themes-enable-bold t
-		doom-themes-enable-italic t)
+        doom-themes-enable-italic t)
   (load-theme 'doom-spacegrey t)
   (doom-themes-visual-bell-config)
   (doom-themes-treemacs-config)
@@ -310,7 +312,7 @@
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 20)
-		   (doom-modeline-icon t)))
+           (doom-modeline-icon t)))
 
 (use-package which-key
   :defer 0
@@ -397,12 +399,12 @@
 
 ;; Enable smartparens and fill column for other programming languages
 (dolist (mode '(ruby-mode-hook
-				python-mode
-				elixir-mode-hook
-				erlang-mode-hook))
+                python-mode
+                elixir-mode-hook
+                erlang-mode-hook))
   (add-hook mode (lambda ()
-				   (smartparens-mode)
-				   (hl-todo-mode))))
+                   (smartparens-mode)
+                   (hl-todo-mode))))
 
 (setq display-fill-column-indicator-column 80)
 
@@ -414,13 +416,13 @@
 
 ;; Enable ParEdit for Lisp languages
 (dolist (mode '(emacs-lisp-mode-hook
-				eval-expression-minibuffer-setup-hook
-				ielm-mode-hook
-				lisp-mode-hook
-				clojure-mode-hook
-				cider-repl-mode-hook
-				lisp-interaction-mode-hook
-				scheme-mode-hook))
+                eval-expression-minibuffer-setup-hook
+                ielm-mode-hook
+                lisp-mode-hook
+                clojure-mode-hook
+                cider-repl-mode-hook
+                lisp-interaction-mode-hook
+                scheme-mode-hook))
   (add-hook mode (lambda () (enable-paredit-mode))))
 
 (add-hook 'slime-repl-mode-hook (lambda () (paredit-mode +1)))
@@ -429,8 +431,8 @@
           ;; which is annoying when backspacing over a '('
 (defun override-slime-repl-bindings-with-paredit ()
   (define-key slime-repl-mode-map
-	(read-kbd-macro paredit-backward-delete-key) nil))
-	  (add-hook 'slime-repl-mode-hook 'override-slime-repl-bindings-with-paredit)
+    (read-kbd-macro paredit-backward-delete-key) nil))
+      (add-hook 'slime-repl-mode-hook 'override-slime-repl-bindings-with-paredit)
 
 (defun efs/org-font-setup ()
   ;; Replace list hyphen with dot
@@ -607,14 +609,14 @@
 ;; Make Markdown mode less ugly
 (defun markdown-mode-visual-fill ()
   (setq visual-fill-column-width 80
-		visual-fill-column-center-text t)
+        visual-fill-column-center-text t)
   (visual-fill-column-mode 1)
   (display-line-numbers-mode -1)
   (display-fill-column-indicator-mode -1))
 
 (defun rfc-mode-visual-prettify ()
   (setq visual-fill-column-width 80
-		visual-fill-column-center-text t)
+        visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
 (use-package markdown-mode
@@ -662,9 +664,9 @@
   (add-to-list 'exec-path "/usr/local/opt/elixir-ls")
   :config
   (setq lsp-headerline-enable nil
-		lsp-headerline-breadcrumb-enable nil ;; disable headerline breadcrumbs
-		lsp-lens-enable t
-		lsp-solargraph-use-bundler t)
+        lsp-headerline-breadcrumb-enable nil ;; disable headerline breadcrumbs
+        lsp-lens-enable t
+        lsp-solargraph-use-bundler t)
   (lsp-enable-which-key-integration t))
 
 (use-package lsp-ui
@@ -708,7 +710,7 @@
   :hook (typescript-mode . lsp-deferred)
   :config
   (setq typescript-indent-level 2
-		js-indent-level 2))
+        js-indent-level 2))
 
 (use-package erlang
   :hook (erlang-mode . lsp-deferred))
@@ -776,9 +778,9 @@
   :after lsp-mode
   :hook ((lsp-mode common-lisp-mode emacs-lisp-mode slime-repl-mode) . company-mode)
   :bind (:map company-active-map
-			  ("<tab>" . company-complete-selection))
+              ("<tab>" . company-complete-selection))
          (:map lsp-mode-map
-			  ("<tab>" . company-indent-or-complete-common))
+              ("<tab>" . company-indent-or-complete-common))
   :custom
   (company-minimum-prefix-length 2)
   (company-idle-delay 0.2)
@@ -918,7 +920,7 @@
   :custom ((dired-listing-switches "-agho --group-directories-first"))
   :config
   (when (string= system-type "darwin")
-	(setq dired-use-ls-dired t
+    (setq dired-use-ls-dired t
         insert-directory-program "/usr/local/bin/gls"))
   (evil-collection-define-key 'normal 'dired-mode-map
     "h" 'dired-single-up-directory
@@ -958,9 +960,9 @@
  '(helm-minibuffer-history-key "M-p")
  '(highlight-tail-colors
    ((("#333a38" "#99bb66" "green")
-	 . 0)
-	(("#2b3d48" "#46D9FF" "brightcyan")
-	 . 20)))
+     . 0)
+    (("#2b3d48" "#46D9FF" "brightcyan")
+     . 20)))
  '(jdee-db-active-breakpoint-face-colors (cons "#1B2229" "#51afef"))
  '(jdee-db-requested-breakpoint-face-colors (cons "#1B2229" "#98be65"))
  '(jdee-db-spec-breakpoint-face-colors (cons "#1B2229" "#3f444a"))
@@ -975,24 +977,24 @@
  '(vc-annotate-background "#282c34")
  '(vc-annotate-color-map
    (list
-	(cons 20 "#98be65")
-	(cons 40 "#b4be6c")
-	(cons 60 "#d0be73")
-	(cons 80 "#ECBE7B")
-	(cons 100 "#e6ab6a")
-	(cons 120 "#e09859")
-	(cons 140 "#da8548")
-	(cons 160 "#d38079")
-	(cons 180 "#cc7cab")
-	(cons 200 "#c678dd")
-	(cons 220 "#d974b7")
-	(cons 240 "#ec7091")
-	(cons 260 "#ff6c6b")
-	(cons 280 "#cf6162")
-	(cons 300 "#9f585a")
-	(cons 320 "#6f4e52")
-	(cons 340 "#5B6268")
-	(cons 360 "#5B6268")))
+    (cons 20 "#98be65")
+    (cons 40 "#b4be6c")
+    (cons 60 "#d0be73")
+    (cons 80 "#ECBE7B")
+    (cons 100 "#e6ab6a")
+    (cons 120 "#e09859")
+    (cons 140 "#da8548")
+    (cons 160 "#d38079")
+    (cons 180 "#cc7cab")
+    (cons 200 "#c678dd")
+    (cons 220 "#d974b7")
+    (cons 240 "#ec7091")
+    (cons 260 "#ff6c6b")
+    (cons 280 "#cf6162")
+    (cons 300 "#9f585a")
+    (cons 320 "#6f4e52")
+    (cons 340 "#5B6268")
+    (cons 360 "#5B6268")))
  '(vc-annotate-very-old-color nil)
  '(warning-suppress-types '((comp) (comp))))
 (custom-set-faces
