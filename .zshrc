@@ -24,6 +24,12 @@ source $ZSH/oh-my-zsh.sh
 alias -g sleep="~/scripts/./sleep.sh"
 alias lg='lazygit'
 alias ec='emacsclient'
+alias kill-emacs='emacsclient -e "(kill-emacs)"'
+# Aliases for Platogo Office VPN
+alias vpnc='networksetup -connectpppoeservice "Platogo VPN"'
+alias vpndc='networksetup -disconnectpppoeservice "Platogo VPN"'
+# ZSH autocorrect ignorelist
+alias rspec='nocorrect rspec'
 
 [ -s "$HOME/.jabba/jabba.sh" ] && source "$HOME/.jabba/jabba.sh"
 
@@ -32,4 +38,8 @@ alias ec='emacsclient'
 [[ /usr/local/bin/kubectl ]] && source <(kubectl completion zsh)
 
 . /usr/local/opt/asdf/asdf.sh
-if command -v pyenv >/dev/null; then eval "$(pyenv init -)"; fi
+export PATH="/usr/local/opt/gnupg@2.2/bin:$PATH"
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
