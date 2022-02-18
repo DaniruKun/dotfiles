@@ -126,7 +126,10 @@
 (use-package mermaid-mode
   :mode "\\.mermaid\\'")
 
-(use-package plantuml-mode)
+(use-package plantuml-mode
+  :mode "\\.puml\\'"
+  :config
+  (setq org-plantuml-jar-path (expand-file-name "~/plantuml.jar")))
 
 (use-package dash-at-point)
 
@@ -252,6 +255,7 @@
               (lambda (frame)
                 (with-selected-frame frame
                   (my-apply-theme 'ns-system-appearance)))))
+  (my-apply-theme ns-system-appearance)
   (set-font-faces))
 
 ;; Auto trigger theme change based on system appearance
@@ -651,9 +655,11 @@
   (org-babel-do-load-languages
       'org-babel-load-languages
       '((emacs-lisp . t)
-      (python . t)))
+        (python . t)
+        (plantuml . t)))
 
-  (push '("conf-unix" . conf-unix) org-src-lang-modes))
+  (push '("conf-unix" . conf-unix) org-src-lang-modes)
+  (push '("plantuml" . plantuml) org-src-lang-modes))
 
 (with-eval-after-load 'org
   ;; This is needed as of Org 9.2
@@ -751,7 +757,7 @@
 (use-package elixir-mode
   :hook (elixir-mode . lsp-deferred))
 
-(use-package alchemist)
+(use-package exunit)
 
 (use-package lsp-tailwindcss)
 
@@ -833,7 +839,6 @@
   :config
   (add-to-list 'company-backends 'company-restclient))
 
-
 (define-key company-active-map (kbd "\C-n") 'company-select-next)
 (define-key company-active-map (kbd "\C-p") 'company-select-previous)
 (define-key company-active-map (kbd "\C-d") 'company-show-doc-buffer)
@@ -846,13 +851,9 @@
   :bind-keymap
   ("C-c p" . projectile-command-map)
   :init
-  ;; NOTE: Set this to the folder where you keep your Git repos!
-  ;; Projectile specific settings
-  (setq projectile-project-search-path '("~/projects/git" "~/projects/local"))
+  (setq projectile-project-search-path '("~/projects/git" "~/projects/local" "~/GIT"))
   (setq projectile-ignored-projects '("~/" "/tmp" "~/.emacs.d/.local/straight/repos/"))
   (setq projectile-indexing-method 'hybrid)
-  (when (not *is-work-laptop*)
-    (setq projectile-project-search-path '("~/GIT")))
   (setq projectile-switch-project-action #'projectile-dired))
 
 (use-package counsel-projectile
@@ -873,6 +874,12 @@
 (use-package github-review)
 
 (setq auth-sources '("~/.authinfo"))
+
+(use-package diff-hl
+  :init (global-diff-hl-mode) (diff-hl-flydiff-mode t))
+
+(add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
+(add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
 
 (use-package kubernetes
   :ensure t
@@ -992,7 +999,7 @@
  '(helm-minibuffer-history-key "M-p")
  '(org-agenda-files nil)
  '(package-selected-packages
-   '(protobuf-mode platogo github-review yard-mode siri-shortcuts unicode-fonts package-build shortcuts kubernetes-helm screenshot org-make-toc js-mode javascript-mode dilbert enlive kubernetes-evil kubernetes gif-screencast dash-at-point rainbow-mode ancient-one-dark-theme org-tree-slide company-erlang nyan-mode fireplace plantuml-mode mermaid-mode dashboard ansi shut-up epl git commander cask hl-todo slime-company yasnippet-classic-snippets markdown-toc restart-emacs elcord-mode yaml-mode company-restclient restclient exec-path-from-shell ghub+ ag centaur-tabs cider clojure-snippets clojure-mode rubocop rspec-mode indent-guide slime erlang smartparens exunit org-caldav anki-mode anki-connect atom-one-dark-theme alchemist lsp-origami origami elixir-yasnippets dotenv-mode elisp-lint elisp-slime-nav noaa paredit ns-auto-titlebar org-chef org-download vagrant dockerfile-mode enh-ruby-mode docker-compose-mode org-vcard ox-pandoc yasnippet-snippets elixir-mode markdown-preview-mode rfc-mode xkcd google-this yasnippet pdf-tools elcord hnreader google-translate copy-as-format nginx-mode cmake-mode minesweeper lsp-ui which-key vterm visual-fill-column use-package typescript-mode rainbow-delimiters pyvenv python-mode org-bullets no-littering lsp-ivy ivy-rich ivy-prescient helpful general forge evil-nerd-commenter evil-collection eterm-256color eshell-git-prompt doom-themes doom-modeline dired-single dired-open dired-hide-dotfiles dap-mode counsel-projectile company-box command-log-mode auto-package-update all-the-icons-dired))
+   '(platogo diff-hl protobuf-mode github-review yard-mode siri-shortcuts unicode-fonts package-build shortcuts kubernetes-helm screenshot org-make-toc js-mode javascript-mode dilbert enlive kubernetes-evil kubernetes gif-screencast dash-at-point rainbow-mode ancient-one-dark-theme org-tree-slide company-erlang nyan-mode fireplace plantuml-mode mermaid-mode dashboard ansi shut-up epl git commander cask hl-todo slime-company yasnippet-classic-snippets markdown-toc restart-emacs elcord-mode yaml-mode company-restclient restclient exec-path-from-shell ghub+ ag centaur-tabs cider clojure-snippets clojure-mode rubocop rspec-mode indent-guide slime erlang smartparens exunit org-caldav anki-mode anki-connect atom-one-dark-theme lsp-origami origami elixir-yasnippets dotenv-mode elisp-lint elisp-slime-nav noaa paredit ns-auto-titlebar org-chef org-download vagrant dockerfile-mode enh-ruby-mode docker-compose-mode org-vcard ox-pandoc yasnippet-snippets elixir-mode markdown-preview-mode rfc-mode xkcd google-this yasnippet pdf-tools elcord hnreader google-translate copy-as-format nginx-mode cmake-mode minesweeper lsp-ui which-key vterm visual-fill-column use-package typescript-mode rainbow-delimiters pyvenv python-mode org-bullets no-littering lsp-ivy ivy-rich ivy-prescient helpful general forge evil-nerd-commenter evil-collection eterm-256color eshell-git-prompt doom-themes doom-modeline dired-single dired-open dired-hide-dotfiles dap-mode counsel-projectile company-box command-log-mode auto-package-update all-the-icons-dired))
  '(send-mail-function 'mailclient-send-it)
  '(warning-suppress-types '((comp) (comp))))
 (custom-set-faces
