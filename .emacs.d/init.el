@@ -119,6 +119,8 @@
 
 (use-package indent-guide :defer t)
 
+(use-package csv-mode)
+
 ;; To generate automatic tables of content in MarkDown docs
 (use-package markdown-toc)
 
@@ -185,6 +187,7 @@
 
 (setq my-programming-modes '(elixir-mode-hook
                              erlang-mode-hook
+							 go-mode-hook
                              emacs-lisp-mode-hook
                              common-lisp-mode-hook
                              lisp-mode-hook
@@ -285,20 +288,20 @@
     "tt" '(counsel-load-theme :which-key "choose theme")
     "fde" '(lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/Emacs.org")))))
 
-(use-package centaur-tabs
-  :demand
-  :config
-  (centaur-tabs-mode -1)
-  :bind
-  ("C-<prior>" . centaur-tabs-backward)
-  ("C-<next>" . centaur-tabs-forward))
+;; (use-package centaur-tabs
+;;   :demand
+;;   :config
+;;   (centaur-tabs-mode -1)
+;;   :bind
+;;   ("C-<prior>" . centaur-tabs-backward)
+;;   ("C-<next>" . centaur-tabs-forward))
 
-(centaur-tabs-headline-match)
-(setq centaur-tabs-gray-out-icons 'buffer)
-(setq centaur-tabs-height 32)
-(setq centaur-tabs-set-icons t)
-(setq centaur-tabs-set-modified-marker t)
-(centaur-tabs-change-fonts "menlo" 200)
+;; (centaur-tabs-headline-match)
+;; (setq centaur-tabs-gray-out-icons 'buffer)
+;; (setq centaur-tabs-height 32)
+;; (setq centaur-tabs-set-icons t)
+;; (setq centaur-tabs-set-modified-marker t)
+;; (centaur-tabs-change-fonts "menlo" 200)
 
 (use-package evil
   :init
@@ -431,6 +434,7 @@
                 python-mode
                 html-mode-hook
                 javascript-mode-hook
+				go-mode-hook
                 elixir-mode-hook
                 erlang-mode-hook))
   (add-hook mode (lambda ()
@@ -685,6 +689,7 @@
   (clojure-mode . lsp)
   (elixir-mode . lsp)
   (erlang-mode . lsp)
+  (go-mode . lsp)
   (javascript-mode . lsp)
   (typescript-mode . lsp))
 
@@ -790,6 +795,9 @@
   :config
   (require 'dap-python))
 
+(use-package go-mode
+  :hook (go-mode . lsp-deferred))
+
 (use-package clojure-mode
   :ensure t
   :hook (clojure-mode . lsp-deferred))
@@ -801,7 +809,7 @@
   :config
   (require 'slime-autoloads)
   (setq slime-contribs '(slime-company slime-quicklisp slime-asdf))
-  (slime-setup '(slime-company slime-quicklisp slime-asdf)))
+  (slime-setup '(slime-company slime-quicklisp slime-asdf slime-fancy)))
 
 (load (expand-file-name "~/.roswell/helper.el"))
 (setq inferior-lisp-program "ros -Q run")
