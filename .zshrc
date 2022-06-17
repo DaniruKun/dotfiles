@@ -14,7 +14,7 @@ fi
 
 # Uncomment the following line to enable command auto-correction.
 ENABLE_CORRECTION="true"
-plugins=(git zsh-autosuggestions zsh-z colored-man-pages zsh-syntax-highlighting ansible aws brew docker docker-compose lein osx pip python)
+plugins=(git zsh-autosuggestions zsh-z colored-man-pages zsh-syntax-highlighting ansible aws brew docker docker-compose lein macos pip python)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -25,6 +25,7 @@ alias -g sleep="~/scripts/./sleep.sh"
 alias lg='lazygit'
 alias ec='emacsclient'
 alias kill-emacs='emacsclient -e "(kill-emacs)"'
+alias my-tickets='zube card ls --status in_progress --project-id 5953 --assignee-id 324110'
 # Aliases for Platogo Office VPN
 alias vpnc='networksetup -connectpppoeservice "Platogo VPN"'
 alias vpndc='networksetup -disconnectpppoeservice "Platogo VPN"'
