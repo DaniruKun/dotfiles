@@ -1,19 +1,11 @@
-
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-export PATH="$HOME/go/bin:$PATH"
-
 export ZSH="$HOME/.oh-my-zsh"
-
-# NVM
-
-export NVM_DIR="$HOME/.nvm"
-  [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
-  [ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 
 # Setup GPG agent
 gpgconf --launch gpg-agent
 gpg-connect-agent updatestartuptty /bye > /dev/null
+
+# Ruby
+export RUBY_CONFIGURE_OPTS="--with-openssl-dir=`brew --prefix openssl@1.1` --with-readline-dir=`brew --prefix readline` --with-libyaml-dir=`brew --prefix libyaml`"
 
 # KERL
 
@@ -26,4 +18,6 @@ export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
 
 export KERL_BUILD_DOCS=yes
 export KERL_CONFIGURE_OPTIONS="--without-javac --with-ssl=$(brew --prefix openssl@1.1)"
-#export KERL_CONFIGURE_OPTIONS="--disable-hipe --without-javac --without-observer --without-reltool --without-wx --with-ssl=$(brew --prefix openssl)"
+
+# Completions
+FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
