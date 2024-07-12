@@ -1,5 +1,5 @@
 # Theme configurations
-ZSH_THEME="bullet-train"
+ZSH_THEME="apple"
 BULLETTRAIN_PROMPT_ORDER=(
   context
   git
@@ -16,15 +16,26 @@ _fix_cursor() {
    echo -ne '\e[5 q'
 }
 
+_prompt_aws_vault() {
+  local vault_segment
+  vault_segment="`prompt_aws_vault_segment`"
+  [[ $vault_segment != '' ]] && prompt_segment cyan black "$vault_segment"
+}
+
+AWS_VAULT_PL_DEFAULT_PROFILE=platogo
+
 # precmd_functions+=(_fix_cursor)
+precmd_functions+=(_prompt_aws_vault)
 
 # Uncomment the following line to enable command auto-correction.
 ENABLE_CORRECTION="true"
-plugins=(git zsh-autosuggestions zsh-z colored-man-pages zsh-syntax-highlighting ansible aws brew docker docker-compose lein macos pip python)
+plugins=(git mix-fast zsh-autosuggestions zsh-z zsh-aws-vault colored-man-pages zsh-syntax-highlighting aws brew lein macos pip python direnv)
 
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
+
+# Aliases
 
 # export MANPATH="/usr/local/man:$MANPATH"
 alias lg='lazygit'
@@ -32,19 +43,36 @@ alias ec='emacsclient'
 alias kill-emacs='emacsclient -e "(kill-emacs)"'
 alias my-wip-tickets='zube card ls --status in_progress --project-id 5953 --assignee-id 324110'
 alias my-done-tickets='zube card ls --status done --project-id 5953 --assignee-id 324110'
-# Aliases for Platogo Office VPN
-alias vpnc='networksetup -connectpppoeservice "Platogo VPN"'
-alias vpndc='networksetup -disconnectpppoeservice "Platogo VPN"'
+alias atoss='atoss-cli'
+alias zube='zube-cli'
+
 # ZSH autocorrect ignorelist
 alias rspec='nocorrect rspec'
+
+ulimit -n 10240
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 [[ /usr/local/bin/kubectl ]] && source <(kubectl completion zsh)
 
-. /usr/local/opt/asdf/asdf.sh
 export PATH="/usr/local/opt/gnupg@2.2/bin:$PATH"
 
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+# GPG stuff
+export GPG_TTY=$(tty)
+export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
+
+# Nix
+export NIXPKGS_ALLOW_UNFREE=1
+if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+  unset __ETC_PROFILE_NIX_SOURCED
+  . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+fi
+# End Nix
+
+# pnpm
+export PNPM_HOME="/Users/dpetrovs/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
