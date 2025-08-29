@@ -1,0 +1,15 @@
+{
+	"cliLastUpdateCheck": 1732978059884,
+	"telemetryDisclosed": 1726165909905,
+	"authToken": "skuxowg31QJRlj6FhoK1V7aKBao4Xvglu6Dc4wgAFqhssani9XHQ96J4IUBvKErBd7ROMKfgRnXQrL70z",
+	"authType": "normal",
+	"telemetryConsent": {
+		"value": {
+			"type": "telemetry",
+			"status": "denied"
+		},
+		"updatedAt": 1732978090317
+	},
+	"cliHasUpdate": "3.65.1",
+	"cliLastUpdateNag": 1732978059907
+}

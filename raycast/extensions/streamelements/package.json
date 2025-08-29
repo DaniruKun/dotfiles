@@ -1,0 +1,85 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "streamelements",
+  "title": "StreamElements",
+  "description": "Interact with StreamElements resources.",
+  "icon": "extension-icon.png",
+  "author": "danirukun",
+  "owner": "streamelements",
+  "categories": [
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "creators-search",
+      "title": "Creators Search",
+      "subtitle": "Search creators in our CRM",
+      "description": "Uses the CRM API to search creators.",
+      "mode": "view"
+    },
+    {
+      "name": "viewers-search",
+      "title": "Viewers Search",
+      "subtitle": "Search viewers in our CRM",
+      "description": "Uses the CRM API to search viewers by username.",
+      "mode": "view"
+    },
+    {
+      "name": "advertisers",
+      "title": "Advertisers",
+      "subtitle": "Search advertisers in our Mad Men API",
+      "description": "Uses the Mad Men API to search advertisers.",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "gatekeeper-jwt",
+      "title": "Gatekeeper JWT",
+      "description": "The JWT to use for our internal APIs.",
+      "type": "password",
+      "required": true
+    },
+    {
+      "name": "crm-api-base-url",
+      "title": "CRM API Base URL",
+      "description": "The base URL for the CRM API.",
+      "type": "textfield",
+      "required": true,
+      "default": "https://crm-api.streamelements.com/api/v1/crm"
+    },
+    {
+      "name": "mad-men-api-base-url",
+      "title": "Mad Men API Base URL",
+      "description": "The base URL for the Mad Men API.",
+      "type": "textfield",
+      "required": true,
+      "default": "https://mad-men.streamelements.com/api/v1"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.87.2",
+    "@raycast/utils": "^1.17.0",
+    "@streamelements/crm-api-axios-sdk": "^4.2.7",
+    "@streamelements/mad-men-axios-sdk": "^2.3.317",
+    "@streamelements/viewer-sponsorship-api-sdk": "^1.0.12",
+    "@streamelements/viewers-crm-api-sdk": "^0.3.11"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.11",
+    "@types/node": "20.8.10",
+    "@types/react": "18.3.3",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.4.5"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "prepublishOnly": "echo \"\\n\\nIt seems like you are trying to publish the Raycast extension to npm.\\n\\nIf you did intend to publish it to npm, remove the \\`prepublishOnly\\` script and rerun \\`npm publish\\` again.\\nIf you wanted to publish it to the Raycast Store instead, use \\`npm run publish\\` instead.\\n\\n\" && exit 1",
+    "publish": "npx @raycast/api@latest publish"
+  }
+}
